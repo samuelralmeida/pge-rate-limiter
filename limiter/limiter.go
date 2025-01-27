@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	"time"
-
-	"github.com/samuelralmeida/pge-rate-limiter/storage/tokens"
 )
 
 type Limiter struct {
-	storage limiterStorage
-	config  *limiterConfig
+	storage      limiterStorage
+	config       *limiterConfig
+	tokenStorage tokenFetcher
 }
 
 type limiterStorage interface {
@@ -19,10 +18,15 @@ type limiterStorage interface {
 	Exists(ctx context.Context, key string) (int, error)
 }
 
-func NewLimiter(storage limiterStorage) *Limiter {
+type tokenFetcher interface {
+	GetLimitByToken(token string) int
+}
+
+func NewLimiter(storage limiterStorage, tokenStorage tokenFetcher) *Limiter {
 	return &Limiter{
-		storage: storage,
-		config:  config(),
+		storage:      storage,
+		tokenStorage: tokenStorage,
+		config:       config(),
 	}
 }
 
@@ -44,7 +48,7 @@ func (l *Limiter) IsTokenAllow(ctx context.Context, token string) (bool, error) 
 		return false, nil
 	}
 
-	limit := tokens.GetLimitByToken(token)
+	limit := l.tokenStorage.GetLimitByToken(token)
 	if limit == 0 {
 		return false, nil
 	}

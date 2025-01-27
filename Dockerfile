@@ -8,6 +8,4 @@ COPY . .
 
 RUN go mod download
 
-EXPOSE 8083
-
 CMD [ "gow", "run", "main.go" ]

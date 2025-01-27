@@ -13,6 +13,7 @@ import (
 	"github.com/samuelralmeida/pge-rate-limiter/limiter"
 	mw "github.com/samuelralmeida/pge-rate-limiter/middleware"
 	"github.com/samuelralmeida/pge-rate-limiter/storage/redis"
+	"github.com/samuelralmeida/pge-rate-limiter/storage/tokens"
 )
 
 func init() {
@@ -26,7 +27,8 @@ func main() {
 	ctx := context.Background()
 
 	redisStorage := redis.NewRedisStorage()
-	rateLimit := limiter.NewLimiter(redisStorage)
+	tokenFetch := tokens.NewTokenFetch()
+	rateLimit := limiter.NewLimiter(redisStorage, tokenFetch)
 
 	rateLimiterMiddleware := mw.RateLimit(ctx, rateLimit)
 

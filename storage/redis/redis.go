@@ -38,8 +38,6 @@ func (r *RedisStorage) Increment(ctx context.Context, key string, ttl time.Durat
 		return 0, fmt.Errorf("error to exec redis pipeline: %w", err)
 	}
 
-	fmt.Println(key)
-
 	return int(result.Val()), nil
 }
 

@@ -28,7 +28,8 @@ func main() {
 
 	redisStorage := redis.NewRedisStorage()
 	tokenFetch := tokens.NewTokenFetch()
-	rateLimit := limiter.NewLimiter(redisStorage, tokenFetch)
+	limiterConfig := limiter.NewConfig()
+	rateLimit := limiter.NewLimiter(redisStorage, tokenFetch, limiterConfig)
 
 	rateLimiterMiddleware := mw.RateLimit(ctx, rateLimit)
 

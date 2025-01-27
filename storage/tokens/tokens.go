@@ -1,6 +1,8 @@
 package tokens
 
-var tokens = map[string]int{}
+var tokens = map[string]int{
+	"token-example": 100,
+}
 
 type tokenFetch struct{}
 

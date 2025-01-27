@@ -3,25 +3,29 @@ package limiter
 import (
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
-type limiterConfig struct {
-	maxIPLimit         int
-	maxTokenLimit      int
-	blockIPDuration    time.Duration
-	blockTokenDuration time.Duration
+type mode string
+
+const (
+	IPMode    mode = "ip-mode"
+	TokenMode mode = "token-mode"
+	AnyMode   mode = "any-mode"
+)
+
+type Config struct {
+	MaxIPLimit         int
+	BlockIPDuration    time.Duration
+	BlockTokenDuration time.Duration
+	Mode               mode
 }
 
-func config() *limiterConfig {
+func NewConfig() *Config {
 	maxIPLimit, err := strconv.Atoi(os.Getenv("MAX_IP_LIMIT"))
 	if err != nil {
 		maxIPLimit = 10
-	}
-
-	maxTokenLimit, err := strconv.Atoi(os.Getenv("MAX_TOKEN_LIMIT"))
-	if err != nil {
-		maxTokenLimit = 10
 	}
 
 	blockIpSeconds, err := strconv.Atoi(os.Getenv("BLOCK_IP_SECONDS"))
@@ -34,10 +38,18 @@ func config() *limiterConfig {
 		blockTokenSeconds = 60 * 5
 	}
 
-	return &limiterConfig{
-		maxIPLimit:         maxIPLimit,
-		maxTokenLimit:      maxTokenLimit,
-		blockTokenDuration: time.Duration(time.Second * time.Duration(blockTokenSeconds)),
-		blockIPDuration:    time.Duration(time.Second * time.Duration(blockIpSeconds)),
+	modeLimiter := AnyMode
+	mode := strings.ToUpper(os.Getenv("LIMITER_MODE"))
+	if mode == "IP" {
+		modeLimiter = IPMode
+	} else if mode == "TOKEN" {
+		modeLimiter = TokenMode
+	}
+
+	return &Config{
+		MaxIPLimit:         maxIPLimit,
+		BlockTokenDuration: time.Duration(time.Second * time.Duration(blockTokenSeconds)),
+		BlockIPDuration:    time.Duration(time.Second * time.Duration(blockIpSeconds)),
+		Mode:               modeLimiter,
 	}
 }

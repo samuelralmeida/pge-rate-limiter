@@ -8,25 +8,16 @@ import (
 )
 
 type rateLimiter interface {
-	IsTokenAllow(ctx context.Context, token string) (bool, error)
-	IsIPAllow(ctx context.Context, ip string) (bool, error)
+	IsAllow(ctx context.Context, ip, token string) (bool, error)
 }
 
 func RateLimit(ctx context.Context, limiter rateLimiter) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var (
-				allowed bool
-				err     error
-			)
-
+			ip := strings.Split(r.RemoteAddr, ":")[0]
 			token := r.Header.Get("API_KEY")
-			if token == "" {
-				allowed, err = limiter.IsTokenAllow(ctx, token)
-			} else {
-				ip := strings.Split(r.RemoteAddr, ":")[0]
-				allowed, err = limiter.IsIPAllow(ctx, ip)
-			}
+
+			allowed, err := limiter.IsAllow(ctx, ip, token)
 
 			if err != nil {
 				log.Println(err)

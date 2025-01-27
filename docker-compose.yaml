@@ -12,11 +12,10 @@ services:
     ports:
       - "8083:8083"
     command: ["gow", "run", "main.go"]
-    stdin_open: true # Mantém stdin aberto
-    tty: true        # Aloca um terminal pseudo-TTY
+    stdin_open: true
+    tty: true
     environment:
-      - REDIS_ADDR=redis:6379
-      - REDIS_PASS=redis123
+      - REDIS_ADDR=redis:6379 # sobrescreve do .env
 
   redis:
     image: redis:latest

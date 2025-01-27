@@ -4,10 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
-	"github.com/redis/go-redis/v9"
+	"github.com/samuelralmeida/pge-rate-limiter/limiter"
+	mw "github.com/samuelralmeida/pge-rate-limiter/middleware"
+	"github.com/samuelralmeida/pge-rate-limiter/storage/redis"
 )
 
 func init() {
@@ -18,23 +23,21 @@ func init() {
 }
 
 func main() {
-	client := redis.NewClient(&redis.Options{
-		Addr:     os.Getenv("REDIS_ADDR"),
-		Password: os.Getenv("REDIS_PASS"),
-		DB:       0,
-		Protocol: 2,
-	})
-
 	ctx := context.Background()
 
-	err := client.Set(ctx, "foo", "bar", 0).Err()
-	if err != nil {
-		panic(err)
-	}
+	redisStorage := redis.NewRedisStorage()
+	rateLimit := limiter.NewLimiter(redisStorage)
 
-	val, err := client.Get(ctx, "foo").Result()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("foo", val)
+	rateLimiterMiddleware := mw.RateLimit(ctx, rateLimit)
+
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(rateLimiterMiddleware)
+
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("welcome"))
+	})
+
+	log.Println("listening on port", os.Getenv("APP_PORT"))
+	http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("APP_PORT")), r)
 }

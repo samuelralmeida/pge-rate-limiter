@@ -51,7 +51,7 @@ O objetivo deste desafio é criar um rate limiter em Go que possa ser utilizado 
 
 ## ORIENTAÇÕES PARA EXECUÇÃO
 
-1. crie um arquivo `.env` a partir do arquivo `example.env`
+1. crie um arquivo `.env` a partir do arquivo `.env.example`
 
     - REDIS_ADDR => endereço do redis. sobrescrito se executar pelo docker compose.
     - REDIS_PASS => password do redis, deve ser igual a senha do redis do arquivo docker compose.
